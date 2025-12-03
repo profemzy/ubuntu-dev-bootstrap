@@ -97,18 +97,48 @@ else
 fi
 
 # ============================================================================
-# fzf - Fuzzy finder
+# fzf - Fuzzy finder (install from GitHub for latest version with --zsh support)
 # ============================================================================
 echo ""
 echo "[4/4] fzf - Fuzzy finder"
-if command_exists fzf; then
-    log_success "fzf is already installed"
-else
-    log_info "Installing fzf..."
-    if sudo apt install -y fzf; then
-        log_success "fzf installed successfully"
+
+# Check if fzf exists and supports --zsh flag (requires 0.48+)
+fzf_needs_upgrade() {
+    if ! command_exists fzf; then
+        return 0  # needs install
+    fi
+    # Check if --zsh is supported
+    if fzf --zsh &>/dev/null; then
+        return 1  # no upgrade needed
     else
-        log_error "Failed to install fzf"
+        return 0  # needs upgrade
+    fi
+}
+
+if ! fzf_needs_upgrade; then
+    log_success "fzf is already installed (with --zsh support)"
+else
+    if command_exists fzf; then
+        log_warning "fzf installed but outdated (missing --zsh support), upgrading..."
+        # Remove old apt version if present
+        sudo apt remove -y fzf 2>/dev/null || true
+    fi
+    log_info "Installing fzf from GitHub (latest version)..."
+    FZF_VERSION=$(curl -fsSL https://api.github.com/repos/junegunn/fzf/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
+    if [ -n "$FZF_VERSION" ]; then
+        FZF_TAR="fzf-${FZF_VERSION}-linux_amd64.tar.gz"
+        if curl -fsSL -o "/tmp/${FZF_TAR}" "https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/${FZF_TAR}"; then
+            tar -xzf "/tmp/${FZF_TAR}" -C /tmp
+            sudo mv /tmp/fzf /usr/local/bin/fzf
+            sudo chmod +x /usr/local/bin/fzf
+            rm -f "/tmp/${FZF_TAR}"
+            log_success "fzf ${FZF_VERSION} installed successfully"
+        else
+            log_error "Failed to download fzf"
+            FAILED_PACKAGES+=("fzf")
+        fi
+    else
+        log_error "Failed to get fzf version"
         FAILED_PACKAGES+=("fzf")
     fi
 fi
