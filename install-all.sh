@@ -51,7 +51,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Available components (for --skip validation)
-AVAILABLE_COMPONENTS="zsh mise nodejs ruby docker stow dotfiles devops shell"
+AVAILABLE_COMPONENTS="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops shell"
 
 # Usage information
 usage() {
@@ -68,6 +68,11 @@ OPTIONS:
 
 AVAILABLE COMPONENTS (for --skip):
     zsh         Zsh shell
+    shelltools  Shell tools (starship, zoxide, fzf, nerd fonts)
+    fastfetch   Fastfetch system info tool
+    uv          Python uv package manager
+    rust        Rust programming language
+    golang      Go programming language
     mise        mise version manager
     nodejs      Node.js runtime
     ruby        Ruby runtime
@@ -255,23 +260,33 @@ main() {
     fi
 
     # Install all packages in order
-    run_if_needed "install-zsh.sh" "command_exists zsh" "1/9" "Zsh" "zsh"
+    run_if_needed "install-zsh.sh" "command_exists zsh" "1/14" "Zsh" "zsh"
 
-    run_if_needed "install-mise.sh" "command_exists mise" "2/9" "mise (version manager)" "mise"
+    run_if_needed "install-shell-tools.sh" "command_exists starship && command_exists zoxide && command_exists fzf" "2/14" "Shell tools (starship, zoxide, fzf, fonts)" "shelltools"
 
-    run_if_needed "install-nodejs.sh" "command_exists node" "3/9" "Node.js" "nodejs"
+    run_if_needed "install-fastfetch.sh" "command_exists fastfetch" "3/14" "Fastfetch" "fastfetch"
 
-    run_if_needed "install-ruby.sh" "command_exists ruby" "4/9" "Ruby" "ruby"
+    run_if_needed "install-uv.sh" "command_exists uv" "4/14" "Python uv" "uv"
 
-    run_if_needed "install-docker.sh" "command_exists docker" "5/9" "Docker CE" "docker"
+    run_if_needed "install-rust.sh" "command_exists rustc" "5/14" "Rust" "rust"
 
-    run_if_needed "install-stow.sh" "command_exists stow" "6/9" "stow" "stow"
+    run_if_needed "install-golang.sh" "command_exists go" "6/14" "Go" "golang"
 
-    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ]" "7/9" "Dotfiles" "dotfiles"
+    run_if_needed "install-mise.sh" "command_exists mise" "7/14" "mise (version manager)" "mise"
 
-    run_if_needed "install-devops-tools.sh" "" "8/9" "DevOps tools" "devops"
+    run_if_needed "install-nodejs.sh" "command_exists node" "8/14" "Node.js" "nodejs"
 
-    run_if_needed "set-shell.sh" "[ \"\$SHELL\" = \"\$(which zsh 2>/dev/null)\" ]" "9/9" "Set default shell" "shell"
+    run_if_needed "install-ruby.sh" "command_exists ruby" "9/14" "Ruby" "ruby"
+
+    run_if_needed "install-docker.sh" "command_exists docker" "10/14" "Docker CE" "docker"
+
+    run_if_needed "install-stow.sh" "command_exists stow" "11/14" "stow" "stow"
+
+    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ]" "12/14" "Dotfiles" "dotfiles"
+
+    run_if_needed "install-devops-tools.sh" "" "13/14" "DevOps tools" "devops"
+
+    run_if_needed "set-shell.sh" "[ \"\$SHELL\" = \"\$(which zsh 2>/dev/null)\" ]" "14/14" "Set default shell" "shell"
 
     # Summary
     echo "==================================="
