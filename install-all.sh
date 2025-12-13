@@ -51,7 +51,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Available components (for --skip validation)
-AVAILABLE_COMPONENTS="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops shell"
+AVAILABLE_COMPONENTS="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops zed shell"
 
 # Usage information
 usage() {
@@ -80,6 +80,7 @@ AVAILABLE COMPONENTS (for --skip):
     stow        GNU stow
     dotfiles    Dotfiles configuration
     devops      DevOps tools (kubectl, helm, terraform, etc.)
+    zed         Configure Zed to allow emulated GPUs
     shell       Set Zsh as default shell
 
 EXAMPLES:
@@ -182,11 +183,11 @@ command_exists() {
 
 # Function to run script only if needed
 run_if_needed() {
-    local script=$1
-    local check_cmd=$2
-    local step_num=$3
-    local step_name=$4
-    local component_id=$5
+    local script="$1"
+    local check_cmd="$2"
+    local step_num="$3"
+    local step_name="$4"
+    local component_id="$5"
 
     log_step "$step_num" "$step_name..."
 
@@ -215,7 +216,9 @@ run_if_needed() {
                 log_info "Running: ./$script"
             fi
 
-            if ! "${SCRIPT_DIR}/${script}"; then
+            # Split script into command and arguments
+            read -ra script_args <<< "$script"
+            if ! "${SCRIPT_DIR}/${script_args[0]}" "${script_args[@]:1}"; then
                 log_error "Failed to install: $step_name"
                 FAILED+=("$step_name")
                 return 1
@@ -260,34 +263,35 @@ main() {
     fi
 
     # Install all packages in order
-    run_if_needed "install-zsh.sh" "command_exists zsh" "1/14" "Zsh" "zsh"
+    run_if_needed "install-zsh.sh" "command_exists zsh" "1/15" "Zsh" "zsh"
 
-    run_if_needed "install-shell-tools.sh" "command_exists starship && command_exists zoxide && command_exists fzf" "2/14" "Shell tools (starship, zoxide, fzf, fonts)" "shelltools"
+    run_if_needed "install-shell-tools.sh" "command_exists starship && command_exists zoxide && command_exists fzf" "2/15" "Shell tools (starship, zoxide, fzf, fonts)" "shelltools"
 
-    run_if_needed "install-fastfetch.sh" "command_exists fastfetch" "3/14" "Fastfetch" "fastfetch"
+    run_if_needed "install-fastfetch.sh" "command_exists fastfetch" "3/15" "Fastfetch" "fastfetch"
 
-    run_if_needed "install-uv.sh" "command_exists uv" "4/14" "Python uv" "uv"
+    run_if_needed "install-uv.sh" "command_exists uv" "4/15" "Python uv" "uv"
 
-    run_if_needed "install-rust.sh" "command_exists rustc" "5/14" "Rust" "rust"
+    run_if_needed "install-rust.sh" "command_exists rustc" "5/15" "Rust" "rust"
 
-    run_if_needed "install-golang.sh" "command_exists go" "6/14" "Go" "golang"
+    run_if_needed "install-golang.sh" "command_exists go" "6/15" "Go" "golang"
 
-    run_if_needed "install-mise.sh" "command_exists mise" "7/14" "mise (version manager)" "mise"
+    run_if_needed "install-mise.sh" "command_exists mise" "7/15" "mise (version manager)" "mise"
 
-    run_if_needed "install-nodejs.sh" "command_exists node" "8/14" "Node.js" "nodejs"
+    run_if_needed "install-nodejs.sh" "command_exists node" "8/15" "Node.js" "nodejs"
 
-    run_if_needed "install-ruby.sh" "command_exists ruby" "9/14" "Ruby" "ruby"
+    run_if_needed "install-ruby.sh" "command_exists ruby" "9/15" "Ruby" "ruby"
 
-    run_if_needed "install-docker.sh" "command_exists docker" "10/14" "Docker CE" "docker"
+    run_if_needed "install-docker.sh" "command_exists docker" "10/15" "Docker CE" "docker"
 
-    run_if_needed "install-stow.sh" "command_exists stow" "11/14" "stow" "stow"
+    run_if_needed "install-stow.sh" "command_exists stow" "11/15" "stow" "stow"
 
-    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ]" "12/14" "Dotfiles" "dotfiles"
+    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ]" "12/15" "Dotfiles" "dotfiles"
 
-    run_if_needed "install-devops-tools.sh" "" "13/14" "DevOps tools" "devops"
+    run_if_needed "install-devops-tools.sh" "" "13/15" "DevOps tools" "devops"
 
-    run_if_needed "set-shell.sh" "[ \"\$SHELL\" = \"\$(which zsh 2>/dev/null)\" ]" "14/14" "Set default shell" "shell"
+    run_if_needed "configure-zed.sh" "[ -f ~/.config/environment.d/zed.conf ] && grep -qx 'ZED_ALLOW_EMULATED_GPU=1' ~/.config/environment.d/zed.conf" "14/15" "Configure Zed emulated GPU override" "zed"
 
+    run_if_needed "set-shell.sh --non-interactive" "[ \"\$SHELL\" = \"\$(which zsh 2>/dev/null || echo /nonexistent)\" ]" "15/15" "Set default shell" "shell"
     # Summary
     echo "==================================="
     if [ "$DRY_RUN" = true ]; then

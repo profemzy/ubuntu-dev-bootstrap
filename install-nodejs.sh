@@ -47,10 +47,11 @@ if ! sudo apt install -y build-essential libssl-dev zlib1g-dev; then
     exit 1
 fi
 
-# Install nodejs version from .tool-versions or mise.toml if it exists
-if [ -f ~/.tool-versions ] && grep -q "nodejs" ~/.tool-versions; then
+# Install Node.js version from mise config, if present.
+# Note: mise expects the plugin name `node` (alias), not `nodejs`.
+if [ -f ~/.tool-versions ] && grep -q "node" ~/.tool-versions; then
     log_info "Installing Node.js from .tool-versions..."
-    if ! mise install nodejs; then
+    if ! mise install node; then
         log_error "Failed to install Node.js from .tool-versions"
         exit 1
     fi

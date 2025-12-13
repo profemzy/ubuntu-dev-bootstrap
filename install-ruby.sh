@@ -47,11 +47,17 @@ if ! sudo apt install -y build-essential libssl-dev libreadline-dev zlib1g-dev l
     exit 1
 fi
 
-# Install ruby version from .tool-versions if it exists
+# Install Ruby version from mise config, if present.
 if [ -f ~/.tool-versions ] && grep -q "ruby" ~/.tool-versions; then
     log_info "Installing Ruby from .tool-versions..."
     if ! mise install ruby; then
         log_error "Failed to install Ruby from .tool-versions"
+        exit 1
+    fi
+elif [ -f mise.toml ] && grep -q "ruby" mise.toml; then
+    log_info "Installing Ruby from mise.toml..."
+    if ! mise install ruby; then
+        log_error "Failed to install Ruby from mise.toml"
         exit 1
     fi
 else

@@ -270,7 +270,7 @@ terraform apply   # Apply changes
 
 ## Troubleshooting
 
-### mise: "missing: ruby@3.4" or "missing: nodejs@..."
+### mise: "missing: ruby@3.4" or "missing: node@..."
 
 **Solution:** Install the missing tool version:
 ```bash
