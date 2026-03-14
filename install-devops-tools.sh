@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/mise/shims:/usr/local/go/bin:$PATH"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -13,6 +15,24 @@ log_success() { echo -e "${GREEN}[OK]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
 log_warning() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 
+install_gh_repo() {
+    sudo apt install -y wget
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+
+    if ! curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null; then
+        log_error "Failed to download GitHub CLI keyring"
+        return 1
+    fi
+
+    if [ ! -s /etc/apt/keyrings/githubcli-archive-keyring.gpg ]; then
+        log_error "GitHub CLI keyring file is empty"
+        return 1
+    fi
+
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+}
+
 # Track failures
 declare -a FAILED_PACKAGES=()
 
@@ -22,6 +42,7 @@ cleanup() {
         echo ""
         log_warning "Some packages failed to install:"
         printf '  - %s\n' "${FAILED_PACKAGES[@]}"
+        exit_code=1
     fi
     if [ $exit_code -ne 0 ]; then
         log_error "DevOps tools installation encountered errors."
@@ -329,25 +350,18 @@ if command_exists gh; then
     log_success "gh is already installed"
 else
     log_info "Installing gh..."
-    sudo apt install -y wget
-    sudo mkdir -p -m 755 /etc/apt/keyrings
-
-    # Add GitHub CLI GPG key
-    if [ -f /etc/apt/keyrings/githubcli-archive-keyring.gpg ]; then
-        sudo rm /etc/apt/keyrings/githubcli-archive-keyring.gpg
-    fi
-    wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-
-    # Add repository
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-
-    sudo apt update
-    if sudo apt install -y gh; then
-        log_success "gh installed successfully"
-    else
-        log_error "Failed to install gh"
+    if ! install_gh_repo; then
+        log_error "Failed to configure gh apt repository"
         FAILED_PACKAGES+=("gh")
+    else
+
+        sudo apt update
+        if sudo apt install -y gh; then
+            log_success "gh installed successfully"
+        else
+            log_error "Failed to install gh"
+            FAILED_PACKAGES+=("gh")
+        fi
     fi
 fi
 

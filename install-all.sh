@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/mise/shims:/usr/local/go/bin:$PATH"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -181,6 +183,10 @@ command_exists() {
     command -v "$1" &>/dev/null
 }
 
+font_installed() {
+    grep -Eiq 'JetBrainsMono.*Nerd|Nerd.*JetBrainsMono' < <(fc-list)
+}
+
 # Function to run script only if needed
 run_if_needed() {
     local script="$1"
@@ -265,7 +271,7 @@ main() {
     # Install all packages in order
     run_if_needed "install-zsh.sh" "command_exists zsh" "1/15" "Zsh" "zsh"
 
-    run_if_needed "install-shell-tools.sh" "command_exists starship && command_exists zoxide && command_exists fzf" "2/15" "Shell tools (starship, zoxide, fzf, fonts)" "shelltools"
+    run_if_needed "install-shell-tools.sh" "command_exists starship && command_exists zoxide && command_exists fzf && font_installed" "2/15" "Shell tools (starship, zoxide, fzf, fonts)" "shelltools"
 
     run_if_needed "install-fastfetch.sh" "command_exists fastfetch" "3/15" "Fastfetch" "fastfetch"
 
@@ -285,13 +291,13 @@ main() {
 
     run_if_needed "install-stow.sh" "command_exists stow" "11/15" "stow" "stow"
 
-    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ]" "12/15" "Dotfiles" "dotfiles"
+    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ] && [ -L ~/.zshrc ] && [ -L ~/.config/nvim ] && [ -L ~/.config/starship.toml ] && [ -f ~/.zprofile ]" "12/15" "Dotfiles" "dotfiles"
 
-    run_if_needed "install-devops-tools.sh" "" "13/15" "DevOps tools" "devops"
+    run_if_needed "install-devops-tools.sh" "command_exists kubectl && command_exists kubectx && command_exists kubens && command_exists helm && command_exists k9s && command_exists stern && command_exists argocd && command_exists flux && command_exists terraform && command_exists ansible && command_exists aws && command_exists gcloud && command_exists az && command_exists gh && command_exists yq && command_exists http" "13/15" "DevOps tools" "devops"
 
     run_if_needed "configure-zed.sh" "[ -f ~/.config/environment.d/zed.conf ] && grep -qx 'ZED_ALLOW_EMULATED_GPU=1' ~/.config/environment.d/zed.conf" "14/15" "Configure Zed emulated GPU override" "zed"
 
-    run_if_needed "set-shell.sh --non-interactive" "[ \"\$SHELL\" = \"\$(which zsh 2>/dev/null || echo /nonexistent)\" ]" "15/15" "Set default shell" "shell"
+    run_if_needed "set-shell.sh --non-interactive" "[ \"\$(getent passwd \"$USER\" | cut -d: -f7)\" = \"\$(command -v zsh 2>/dev/null || echo /nonexistent)\" ]" "15/15" "Set default shell" "shell"
     # Summary
     echo "==================================="
     if [ "$DRY_RUN" = true ]; then

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/mise/shims:/usr/local/go/bin:$PATH"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -46,6 +48,22 @@ else
 fi
 
 log_info "Preparing configs..."
+
+if [ ! -f "$HOME/.zprofile" ]; then
+    log_info "Creating .zprofile to load .profile for zsh login shells"
+    cat > "$HOME/.zprofile" <<'EOF'
+[ -f "$HOME/.profile" ] && . "$HOME/.profile"
+EOF
+elif ! grep -Fqx '[ -f "$HOME/.profile" ] && . "$HOME/.profile"' "$HOME/.zprofile"; then
+    log_info "Adding .profile loading to existing .zprofile"
+    printf '\n%s\n' '[ -f "$HOME/.profile" ] && . "$HOME/.profile"' >> "$HOME/.zprofile"
+fi
+
+if [ -e ~/.zshrc ] && [ ! -L ~/.zshrc ]; then
+    backup_path="$HOME/.zshrc.pre-dotfiles.$(date +%Y%m%d%H%M%S)"
+    log_info "Backing up existing .zshrc to $(basename "$backup_path")"
+    mv ~/.zshrc "$backup_path"
+fi
 
 # Only remove configs if they're not already symlinks to dotfiles
 if [ -e ~/.config/nvim ] && [ ! -L ~/.config/nvim ]; then

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/mise/shims:/usr/local/go/bin:$PATH"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -22,6 +24,7 @@ cleanup() {
         echo ""
         log_warning "Some packages failed to install:"
         printf '  - %s\n' "${FAILED_PACKAGES[@]}"
+        exit_code=1
     fi
     if [ $exit_code -ne 0 ]; then
         log_error "Shell tools installation encountered errors."
@@ -39,11 +42,15 @@ command_exists() {
     command -v "$1" &>/dev/null
 }
 
+font_installed() {
+    grep -Eiq 'JetBrainsMono.*Nerd|Nerd.*JetBrainsMono' < <(fc-list)
+}
+
 # ============================================================================
 # JetBrainsMono Nerd Font - Required for starship prompt icons
 # ============================================================================
 echo "[1/4] JetBrainsMono Nerd Font"
-if fc-list | grep -qi "JetBrainsMono.*Nerd"; then
+if font_installed; then
     log_success "JetBrainsMono Nerd Font is already installed"
 else
     log_info "Installing JetBrainsMono Nerd Font..."
@@ -126,7 +133,7 @@ else
     log_info "Installing fzf from GitHub (latest version)..."
     FZF_VERSION=$(curl -fsSL https://api.github.com/repos/junegunn/fzf/releases/latest | grep '"tag_name"' | cut -d'"' -f4)
     if [ -n "$FZF_VERSION" ]; then
-        FZF_TAR="fzf-${FZF_VERSION}-linux_amd64.tar.gz"
+        FZF_TAR="fzf-${FZF_VERSION#v}-linux_amd64.tar.gz"
         if curl -fsSL -o "/tmp/${FZF_TAR}" "https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/${FZF_TAR}"; then
             tar -xzf "/tmp/${FZF_TAR}" -C /tmp
             sudo mv /tmp/fzf /usr/local/bin/fzf
@@ -155,7 +162,7 @@ echo "Installed tools:"
 command_exists starship && echo "  - starship $(starship --version 2>/dev/null | head -1 || echo '')"
 command_exists zoxide && echo "  - zoxide $(zoxide --version 2>/dev/null || echo '')"
 command_exists fzf && echo "  - fzf $(fzf --version 2>/dev/null || echo '')"
-fc-list | grep -qi "JetBrainsMono.*Nerd" && echo "  - JetBrainsMono Nerd Font"
+font_installed && echo "  - JetBrainsMono Nerd Font"
 echo ""
 echo "Next steps:"
 echo "  - Set your terminal font to 'JetBrainsMono Nerd Font' or 'JetBrainsMono NF'"
