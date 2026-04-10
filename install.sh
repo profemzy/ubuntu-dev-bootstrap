@@ -10,7 +10,7 @@ set -euo pipefail
 # for configuration (in interactive mode), runs the installer, and cleans up.
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/master/install.sh | bash
 #   curl -sSL ... | bash -s -- --profile devops --non-interactive
 # ============================================================================
 
@@ -32,7 +32,7 @@ VERBOSE=false
 # Temporary directory
 TEMP_DIR=""
 REPO_URL="https://github.com/profemzy/ubuntu-dev-bootstrap.git"
-REPO_BRANCH="main"
+REPO_BRANCH="master"
 
 # Logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
@@ -84,7 +84,7 @@ PROFILES:
     full        frontend + devops + Ruby, Rust, Go, uv, fastfetch
 
 EXAMPLES:
-    curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash
+    curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/master/install.sh | bash
     curl -sSL ... | bash -s -- --profile devops
     curl -sSL ... | bash -s -- --profile minimal --non-interactive
     curl -sSL ... | bash -s -- --dry-run
