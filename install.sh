@@ -148,6 +148,12 @@ validate_profile() {
     fi
 }
 
+# Check if running interactively (stdin is not a tty)
+# When piped via curl | bash, stdin is the script content, not the terminal
+is_piped() {
+    [ ! -t 0 ]
+}
+
 # Prompt user for profile selection (interactive mode)
 prompt_profile() {
     echo ""
@@ -160,7 +166,12 @@ prompt_profile() {
     echo ""
     echo -n "Enter choice [1-4] (default: 4): "
 
-    read -r choice
+    # Read from /dev/tty when piped, otherwise read from stdin
+    if is_piped; then
+        read -r choice < /dev/tty
+    else
+        read -r choice
+    fi
 
     case "$choice" in
         1) PROFILE="minimal" ;;
@@ -183,7 +194,12 @@ prompt_dotfiles() {
     echo "Enter a custom dotfiles URL (or press Enter for default):"
     echo -n "> "
 
-    read -r custom_url
+    # Read from /dev/tty when piped, otherwise read from stdin
+    if is_piped; then
+        read -r custom_url < /dev/tty
+    else
+        read -r custom_url
+    fi
 
     if [[ -n "$custom_url" ]]; then
         DOTFILES_URL="$custom_url"
