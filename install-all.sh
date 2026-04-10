@@ -28,9 +28,9 @@ declare -a SKIP_COMPONENTS=()
 # Profile definitions (components included in each profile)
 # Each profile is a set of component IDs from AVAILABLE_COMPONENTS
 declare -A PROFILE_COMPONENTS
-PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise"
-PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles"
-PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops"
+PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise shell"
+PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles shell"
+PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops shell"
 PROFILE_COMPONENTS["full"]="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops zed shell"
 
 # Track what would be/was installed
@@ -379,7 +379,7 @@ main() {
 
     run_if_needed "configure-zed.sh" "[ -f ~/.config/environment.d/zed.conf ] && grep -qx 'ZED_ALLOW_EMULATED_GPU=1' ~/.config/environment.d/zed.conf" "14/15" "Configure Zed emulated GPU override" "zed"
 
-    run_if_needed "set-shell.sh --non-interactive" "[ \"\$(getent passwd \"$USER\" | cut -d: -f7)\" = \"\$(command -v zsh 2>/dev/null || echo /nonexistent)\" ]" "15/15" "Set default shell" "shell"
+    run_if_needed "set-shell.sh" "[ \"\$(getent passwd \"$USER\" | cut -d: -f7)\" = \"\$(command -v zsh 2>/dev/null || echo /nonexistent)\" ]" "15/15" "Set default shell" "shell"
     # Summary
     echo "==================================="
     if [ "$DRY_RUN" = true ]; then
