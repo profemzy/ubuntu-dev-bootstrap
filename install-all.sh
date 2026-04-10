@@ -28,9 +28,9 @@ declare -a SKIP_COMPONENTS=()
 # Profile definitions (components included in each profile)
 # Each profile is a set of component IDs from AVAILABLE_COMPONENTS
 declare -A PROFILE_COMPONENTS
-PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise shell"
+PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise dotfiles shell"
 PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles shell"
-PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops shell"
+PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops dotfiles shell"
 PROFILE_COMPONENTS["full"]="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops zed shell"
 
 # Track what would be/was installed
