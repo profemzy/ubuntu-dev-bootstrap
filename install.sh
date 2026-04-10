@@ -267,22 +267,22 @@ run_installer() {
 
     cd "$TEMP_DIR"
 
-    # Build command with flags
-    local cmd="./install-all.sh --profile $PROFILE --dotfiles-url $DOTFILES_URL"
+    # Run install-all.sh with the appropriate flags
+    local installer_args=(
+        "--profile" "$PROFILE"
+        "--dotfiles-url" "$DOTFILES_URL"
+    )
 
     if [ "$NON_INTERACTIVE" = true ]; then
-        cmd="$cmd --non-interactive"
+        installer_args+=("--non-interactive")
     fi
 
     if [ "$VERBOSE" = true ]; then
-        cmd="$cmd --verbose"
+        installer_args+=("--verbose")
+        log_info "Running: ./install-all.sh ${installer_args[*]}"
     fi
 
-    if [ "$VERBOSE" = true ]; then
-        log_info "Running: $cmd"
-    fi
-
-    if ! bash "$cmd"; then
+    if ! ./install-all.sh "${installer_args[@]}"; then
         log_error "Installation failed"
         exit 1
     fi
