@@ -16,13 +16,13 @@ This repository contains automated setup scripts to configure an Ubuntu system w
 ### One-Line Installation
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/master/install.sh | bash
 ```
 
 This will prompt you to select a profile and optionally provide custom dotfiles. For automated/CI environments:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash -s -- --profile devops --non-interactive
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/master/install.sh | bash -s -- --profile devops --non-interactive
 ```
 
 ### Preview Installation
@@ -30,7 +30,7 @@ curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/i
 See what would be installed without making changes:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash -s -- --dry-run
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/master/install.sh | bash -s -- --dry-run
 ```
 
 ## Installation Profiles
@@ -48,6 +48,21 @@ Built-in profiles for different developer needs:
 
 ### Examples
 
+#### Bootstrap entrypoint (`install.sh`)
+
+```bash
+# Install with the default full profile
+./install.sh
+
+# Install DevOps profile non-interactively
+./install.sh --profile devops --non-interactive
+
+# Preview a minimal install with custom dotfiles
+./install.sh --profile minimal --dotfiles https://github.com/yourname/dotfiles.git --dry-run
+```
+
+#### Local orchestrator (`install-all.sh`)
+
 ```bash
 # Install DevOps profile
 ./install-all.sh --profile devops
@@ -64,16 +79,31 @@ Built-in profiles for different developer needs:
 
 ## Command Line Options
 
+### `install.sh` (bootstrap entrypoint)
+
 ```bash
 ./install.sh [OPTIONS]
+
+OPTIONS:
+    -p, --profile PROFILE     Installation profile (minimal, frontend, devops, full)
+    -d, --dotfiles URL        Custom dotfiles repository URL (HTTPS)
+    -n, --non-interactive     Skip all prompts, use defaults
+    --dry-run                 Preview what would be installed
+    -v, --verbose             Show detailed output
+    -h, --help                Show help message
+```
+
+### `install-all.sh` (local orchestrator)
+
+```bash
 ./install-all.sh [OPTIONS]
 
 OPTIONS:
     -p, --profile PROFILE     Installation profile (minimal, frontend, devops, full)
     -d, --dotfiles-url URL    Custom dotfiles repository URL (HTTPS)
     -n, --non-interactive     Skip all prompts, use defaults
-    --dry-run                 Preview what would be installed
     -s, --skip COMP           Skip component(s). Can be used multiple times
+    --dry-run                 Preview what would be installed
     -v, --verbose             Show detailed output
     -h, --help                Show help message
 
@@ -154,7 +184,7 @@ Pre-configured dotfiles from [profemzy/dotfiles](https://github.com/profemzy/dot
 
 Use your own dotfiles by providing a URL:
 ```bash
-./install.sh --dotfiles-url https://github.com/yourname/dotfiles.git
+./install.sh --dotfiles https://github.com/yourname/dotfiles.git
 ```
 
 ## Post-Installation Setup
@@ -220,7 +250,7 @@ mise manages language versions per-project or globally.
 ```bash
 # Install versions
 mise install                    # Install all from config
-mise install node@latest        # Install latest Node.js
+mise install node@25            # Install latest Node.js 25.x
 mise install ruby@3.4           # Install Ruby 3.4.x
 
 # Set versions
@@ -317,7 +347,7 @@ bats tests/
 ```
 ubuntu-dev-bootstrap/
 ├── install.sh              # Bootstrap entry point (curl one-liner)
-├── install-all.sh          # Master orchestrator with profiles
+├── install-all.sh          # Main orchestrator with profiles
 ├── install-zsh.sh          # Zsh installation
 ├── install-shell-tools.sh  # starship, zoxide, fzf, fonts
 ├── install-mise.sh         # mise version manager

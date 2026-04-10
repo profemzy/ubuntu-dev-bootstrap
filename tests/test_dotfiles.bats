@@ -5,53 +5,99 @@
 
 load 'test_helper'
 
-@test "dotfiles: --help not available (minimal script)" {
-    # install-dotfiles.sh doesn't have --help, only --dotfiles-url
+@test "dotfiles: unknown option fails" {
     run ./install-dotfiles.sh --help
-    # Should fail since option is unknown
     [ "$status" -ne 0 ]
 }
 
-@test "dotfiles: accepts --dotfiles-url parameter" {
-    # This test would need a mock or skip if already installed
-    skip "Requires clean environment to test clone behavior"
-}
+@test "dotfiles: default URL is used for clone" {
+    setup_isolated_env
+    make_stub stow 'exit 0'
+    make_stub git '
+if [ "$1" = "clone" ]; then
+    mkdir -p "$3/.git" "$3/zshrc" "$3/nvim" "$3/starship"
+    exit 0
+fi
+exit 0'
 
-@test "dotfiles: default URL is HTTPS not SSH" {
-    # Verify the script contains HTTPS URL
-    run grep -q "https://github.com/profemzy/dotfiles.git" ./install-dotfiles.sh
+    run ./install-dotfiles.sh
+
     [ "$status" -eq 0 ]
+    assert_call_logged "git clone https://github.com/profemzy/dotfiles.git $HOME/dotfiles"
 }
 
-@test "dotfiles: does not contain SSH URL format" {
-    # Verify SSH URL is removed
-    run grep -q "git@github.com" ./install-dotfiles.sh
-    [ "$status" -ne 0 ]
-}
+@test "dotfiles: custom URL is used for clone" {
+    setup_isolated_env
+    make_stub stow 'exit 0'
+    make_stub git '
+if [ "$1" = "clone" ]; then
+    mkdir -p "$3/.git" "$3/zshrc" "$3/nvim" "$3/starship"
+    exit 0
+fi
+exit 0'
 
-@test "dotfiles: custom URL is passed correctly" {
-    # Simulate passing custom URL through install-all.sh
-    run ./install-all.sh --dotfiles-url https://example.com/test.git --dry-run --profile frontend
+    run ./install-dotfiles.sh --dotfiles-url https://example.com/test.git
+
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Dotfiles: https://example.com/test.git" ]]
+    assert_call_logged "git clone https://example.com/test.git $HOME/dotfiles"
 }
 
 @test "dotfiles: script validates URL parameter format" {
-    # Missing URL should fail
     run ./install-dotfiles.sh --dotfiles-url
     [ "$status" -eq 1 ]
     [[ "$output" =~ "requires a URL" ]]
 }
 
-@test "dotfiles: handles existing directory gracefully" {
-    # If dotfiles dir exists, should skip clone
-    skip "Requires test environment with existing dotfiles"
+@test "dotfiles: existing repo with matching remote skips clone" {
+    setup_isolated_env
+    mkdir -p "$HOME/dotfiles/.git" "$HOME/dotfiles/zshrc" "$HOME/dotfiles/nvim" "$HOME/dotfiles/starship"
+    make_stub stow 'exit 0'
+    make_stub git '
+if [ "$1" = "-C" ] && [ "$3" = "remote" ] && [ "$4" = "get-url" ]; then
+    echo "https://github.com/profemzy/dotfiles.git"
+    exit 0
+fi
+if [ "$1" = "clone" ]; then
+    exit 99
+fi
+exit 0'
+
+    run ./install-dotfiles.sh
+
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "already exists with correct remote. Skipping clone" ]]
+    ! assert_call_logged "git clone"
 }
 
-@test "dotfiles: updates remote URL if different" {
-    skip "Requires test environment setup"
+@test "dotfiles: existing repo with different remote updates remote URL" {
+    setup_isolated_env
+    mkdir -p "$HOME/dotfiles/.git" "$HOME/dotfiles/zshrc" "$HOME/dotfiles/nvim" "$HOME/dotfiles/starship"
+    make_stub stow 'exit 0'
+    make_stub git '
+if [ "$1" = "-C" ] && [ "$3" = "remote" ] && [ "$4" = "get-url" ]; then
+    echo "https://example.com/old.git"
+    exit 0
+fi
+exit 0'
+
+    run ./install-dotfiles.sh --dotfiles-url https://example.com/new.git
+
+    [ "$status" -eq 0 ]
+    assert_call_logged "git -C $HOME/dotfiles remote set-url origin https://example.com/new.git"
 }
 
 @test "dotfiles: reports helpful error on clone failure" {
-    skip "Requires network failure simulation"
+    setup_isolated_env
+    make_stub stow 'exit 0'
+    make_stub git '
+if [ "$1" = "clone" ]; then
+    exit 1
+fi
+exit 0'
+
+    run ./install-dotfiles.sh
+
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "Failed to clone the dotfiles repository" ]]
+    [[ "$output" =~ "If using a private repository" ]]
 }

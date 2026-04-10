@@ -243,7 +243,7 @@ run_installer() {
     log_step "2" "Running installation..."
 
     if [ "$DRY_RUN" = true ]; then
-        log_warning "[DRY-RUN] Would run: ./install-all.sh --profile $PROFILE --dotfiles $DOTFILES_URL"
+        log_warning "[DRY-RUN] Would run: ./install-all.sh --profile $PROFILE --dotfiles-url $DOTFILES_URL"
         echo ""
         echo "Components that would be installed for '$PROFILE' profile:"
         case "$PROFILE" in
@@ -282,7 +282,7 @@ run_installer() {
         log_info "Running: ./install-all.sh ${installer_args[*]}"
     fi
 
-    if ! ./install-all.sh "${installer_args[@]}"; then
+    if ! bash ./install-all.sh "${installer_args[@]}"; then
         log_error "Installation failed"
         exit 1
     fi

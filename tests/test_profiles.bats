@@ -26,14 +26,20 @@ load 'test_helper'
 @test "profiles: minimal profile includes zsh, shelltools, mise, stow" {
     run ./install-all.sh --profile minimal --dry-run
     [ "$status" -eq 0 ]
-    # These should NOT show "Not included" message
-    # They will either show "Already installed" or be in would-install
+    [[ "$output" =~ "Zsh..." ]]
+    [[ "$output" != *"Zsh..."$'\n'"[WARN] Not included in 'minimal' profile"* ]]
+    [[ "$output" =~ "Shell tools (starship, zoxide, fzf, fonts)..." ]]
+    [[ "$output" =~ "mise (version manager)..." ]]
+    [[ "$output" =~ "stow..." ]]
 }
 
 @test "profiles: frontend profile includes nodejs and dotfiles" {
     run ./install-all.sh --profile frontend --dry-run
     [ "$status" -eq 0 ]
-    # Node.js and dotfiles should NOT show "Not included" for frontend
+    [[ "$output" =~ "Node.js..." ]]
+    [[ "$output" != *"Node.js..."$'\n'"[WARN] Not included in 'frontend' profile"* ]]
+    [[ "$output" =~ "Dotfiles..." ]]
+    [[ "$output" != *"Dotfiles..."$'\n'"[WARN] Not included in 'frontend' profile"* ]]
 }
 
 @test "profiles: frontend profile excludes devops tools" {
@@ -46,7 +52,10 @@ load 'test_helper'
 @test "profiles: devops profile includes docker and devops tools" {
     run ./install-all.sh --profile devops --dry-run
     [ "$status" -eq 0 ]
-    # Docker and devops should NOT show "Not included"
+    [[ "$output" =~ "Docker CE..." ]]
+    [[ "$output" != *"Docker CE..."$'\n'"[WARN] Not included in 'devops' profile"* ]]
+    [[ "$output" =~ "DevOps tools..." ]]
+    [[ "$output" != *"DevOps tools..."$'\n'"[WARN] Not included in 'devops' profile"* ]]
 }
 
 @test "profiles: devops profile excludes nodejs and ruby" {
@@ -54,18 +63,20 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Node.js..." ]]
     [[ "$output" =~ "Not included in 'devops' profile" ]]
+    [[ "$output" =~ "Ruby..." ]]
+    [[ "$output" =~ "Not included in 'devops' profile" ]]
 }
 
 @test "profiles: full profile includes all components" {
     run ./install-all.sh --profile full --dry-run
     [ "$status" -eq 0 ]
-    # Full profile should not have any "Not included" messages
+    [[ "$output" != *"Not included in 'full' profile"* ]]
 }
 
 @test "profiles: --skip works with profile filtering" {
     run ./install-all.sh --profile minimal --skip zsh --dry-run
     [ "$status" -eq 0 ]
-    [[ "$output" =~ "Skipped by user" ]]
+    [[ "$output" =~ "Skipped by user (--skip zsh)" ]]
 }
 
 @test "profiles: invalid profile shows error" {

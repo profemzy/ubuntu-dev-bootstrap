@@ -279,6 +279,8 @@ if command_exists aws; then
     log_success "aws-cli is already installed"
 else
     log_info "Installing aws-cli v2..."
+    # Ensure unzip is available
+    sudo apt install -y unzip
     AWS_ZIP="/tmp/awscliv2.zip"
     if curl -fsSL -o "$AWS_ZIP" "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"; then
         unzip -q -o "$AWS_ZIP" -d /tmp
