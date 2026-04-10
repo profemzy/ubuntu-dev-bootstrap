@@ -166,18 +166,23 @@ prompt_profile() {
     echo ""
     echo -n "Enter choice [1-4] (default: 4): "
 
-    # Read from /dev/tty when piped, otherwise read from stdin
+    # Temporarily disable errexit for read, as it may fail in piped contexts
+    set +e
     if is_piped; then
         read -r choice < /dev/tty
     else
         read -r choice
     fi
+    set -e
+
+    # Default to 4 if read failed or returned empty
+    choice="${choice:-4}"
 
     case "$choice" in
         1) PROFILE="minimal" ;;
         2) PROFILE="frontend" ;;
         3) PROFILE="devops" ;;
-        4|"") PROFILE="full" ;;
+        4) PROFILE="full" ;;
         *) log_warning "Invalid choice, using default (full)"; PROFILE="full" ;;
     esac
 
@@ -194,12 +199,14 @@ prompt_dotfiles() {
     echo "Enter a custom dotfiles URL (or press Enter for default):"
     echo -n "> "
 
-    # Read from /dev/tty when piped, otherwise read from stdin
+    # Temporarily disable errexit for read
+    set +e
     if is_piped; then
         read -r custom_url < /dev/tty
     else
         read -r custom_url
     fi
+    set -e
 
     if [[ -n "$custom_url" ]]; then
         DOTFILES_URL="$custom_url"
