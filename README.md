@@ -1,21 +1,118 @@
-# Pop!_OS Supplement
+# Ubuntu Developer Bootstrap
 
-Personal supplemental installation and configuration scripts for a fresh [Pop!_OS](https://pop.system76.com/) 24.04 installation.
+Automated setup for a fresh Ubuntu 24.04+ development environment. Install a complete development toolkit in minutes via a single curl command.
 
 ## Overview
 
-This repository contains automated setup scripts to configure a Pop!_OS system with development tools, DevOps utilities, and personalized configurations. All scripts are **idempotent** and safe to run multiple times.
+This repository contains automated setup scripts to configure an Ubuntu system with development tools, DevOps utilities, and personalized configurations. All scripts are **idempotent** and safe to run multiple times.
+
+**Target Systems:**
+- Ubuntu 24.04 LTS (Noble Numbat)
+- Ubuntu 26.04 LTS and future versions
+- Pop!_OS 24.04+ (Ubuntu derivative)
+
+## Quick Start
+
+### One-Line Installation
+
+```bash
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash
+```
+
+This will prompt you to select a profile and optionally provide custom dotfiles. For automated/CI environments:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash -s -- --profile devops --non-interactive
+```
+
+### Preview Installation
+
+See what would be installed without making changes:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/profemzy/ubuntu-dev-bootstrap/main/install.sh | bash -s -- --dry-run
+```
+
+## Installation Profiles
+
+Built-in profiles for different developer needs:
+
+| Profile | Description | Components |
+|---------|-------------|------------|
+| `minimal` | Base layer | zsh, shelltools (starship, zoxide, fzf, fonts), mise, stow |
+| `frontend` | Web development | minimal + Node.js, dotfiles |
+| `devops` | Infrastructure | minimal + Docker, kubectl, helm, terraform, cloud CLIs, k9s, argocd, flux |
+| `full` | Complete toolkit | frontend + devops + Ruby, Rust, Go, uv, fastfetch, Zed config |
+
+**Default profile:** `full`
+
+### Examples
+
+```bash
+# Install DevOps profile
+./install-all.sh --profile devops
+
+# Install minimal profile with custom dotfiles
+./install-all.sh --profile minimal --dotfiles-url https://github.com/yourname/dotfiles.git
+
+# Preview frontend profile
+./install-all.sh --profile frontend --dry-run
+
+# Skip specific components beyond profile
+./install-all.sh --profile full --skip docker,ruby
+```
+
+## Command Line Options
+
+```bash
+./install.sh [OPTIONS]
+./install-all.sh [OPTIONS]
+
+OPTIONS:
+    -p, --profile PROFILE     Installation profile (minimal, frontend, devops, full)
+    -d, --dotfiles-url URL    Custom dotfiles repository URL (HTTPS)
+    -n, --non-interactive     Skip all prompts, use defaults
+    --dry-run                 Preview what would be installed
+    -s, --skip COMP           Skip component(s). Can be used multiple times
+    -v, --verbose             Show detailed output
+    -h, --help                Show help message
+
+AVAILABLE COMPONENTS (for --skip):
+    zsh         Zsh shell
+    shelltools  Shell tools (starship, zoxide, fzf, nerd fonts)
+    fastfetch   Fastfetch system info tool
+    uv          Python uv package manager
+    rust        Rust programming language
+    golang      Go programming language
+    mise        mise version manager
+    nodejs      Node.js runtime
+    ruby        Ruby runtime
+    docker      Docker CE with compose plugin
+    stow        GNU stow
+    dotfiles    Dotfiles configuration
+    devops      DevOps tools (kubectl, helm, terraform, cloud CLIs, etc.)
+    zed         Configure Zed to allow emulated GPUs
+    shell       Set Zsh as default shell
+```
 
 ## What's Included
 
-### Core Tools
+### Shell & Tools
 - **Zsh** - Z shell with modern features
-- **mise** - Fast, polyglot version manager (replaces asdf)
-- **stow** - Symlink farm manager for dotfiles
+- **starship** - Cross-shell prompt
+- **zoxide** - Smart directory jumper
+- **fzf** - Fuzzy finder
+- **nerd fonts** - JetBrains Mono Nerd Font
 
-### Development Environments
-- **Node.js** (v25) - JavaScript/TypeScript runtime (managed by mise, prefix-pinned)
-- **Ruby** (v3.4) - Ruby programming language (managed by mise, prefix-pinned)
+### Version Management
+- **mise** - Fast, polyglot version manager (replaces asdf)
+
+### Development Languages
+- **Node.js** (v25) - JavaScript/TypeScript runtime (prefix-pinned)
+- **Ruby** (v3.4) - Ruby programming language (prefix-pinned)
+- **Rust** - Via rustup
+- **Go** - Latest from official source
+- **uv** - Python package manager
 
 ### Container Runtime
 - **Docker CE** - Container runtime with docker-compose plugin
@@ -24,361 +121,263 @@ This repository contains automated setup scripts to configure a Pop!_OS system w
 ### DevOps Tools
 
 **Kubernetes:**
-- **kubectl** - Kubernetes command-line tool
-- **kubectx** - Fast Kubernetes context switcher
-- **kubens** - Kubernetes namespace switcher
-- **helm** - Kubernetes package manager
-- **k9s** - Kubernetes TUI (Terminal UI)
-- **stern** - Multi-pod log tailing for Kubernetes
+- **kubectl** - Kubernetes CLI (latest stable from v1/stable channel)
+- **kubectx** - Context switcher
+- **kubens** - Namespace switcher
+- **helm** - Package manager
+- **k9s** - Terminal UI
+- **stern** - Multi-pod log tailing
 
-**GitOps & CD:**
+**GitOps:**
 - **argocd** - GitOps continuous delivery
 - **flux** - Flux GitOps operator
 
-**Infrastructure as Code:**
-- **terraform** - Infrastructure as Code tool
-- **ansible** - Configuration management and automation
+**Infrastructure:**
+- **terraform** - Infrastructure as Code
+- **ansible** - Configuration management
 
 **Cloud CLIs:**
-- **aws-cli** - Amazon Web Services CLI
-- **gcloud** - Google Cloud Platform CLI
-- **azure-cli** - Microsoft Azure CLI
-
-**Developer Tools:**
-- **github-cli** (gh) - GitHub CLI for workflow automation
+- **aws-cli** (v2) - Amazon Web Services
+- **gcloud** - Google Cloud Platform
+- **azure-cli** - Microsoft Azure
+- **gh** - GitHub CLI
 
 **Utilities:**
 - **yq** - YAML/XML/TOML processor
 - **httpie** - User-friendly HTTP client
 
-### Customizations
-
-**Dotfiles** - Pre-configured from [profemzy/dotfiles](https://github.com/profemzy/dotfiles)
+### Dotfiles
+Pre-configured dotfiles from [profemzy/dotfiles](https://github.com/profemzy/dotfiles):
 - Neovim configuration
 - Starship prompt
 - Zsh configuration
 
-## Prerequisites
-
-- **Pop!_OS 24.04** (fresh install recommended)
-- **Internet connection** for downloading packages
-
-## Quick Start
-
-### Full Installation
-
-Clone the repository and run the complete installation:
-
+Use your own dotfiles by providing a URL:
 ```bash
-git clone <your-repo-url> ~/Projects/popos-supplements
-cd ~/Projects/popos-supplements
-chmod +x *.sh
-./install-all.sh
+./install.sh --dotfiles-url https://github.com/yourname/dotfiles.git
 ```
 
-The installation script is **idempotent** - it will only install components that are missing, so you can safely run it multiple times.
+## Post-Installation Setup
 
-### Command Line Options
+After installation, configure authentication for cloud services:
 
+### AWS CLI
 ```bash
-./install-all.sh [OPTIONS]
-
-OPTIONS:
-    -n, --dry-run        Show what would be installed without making changes
-    -s, --skip COMP      Skip component(s). Can be used multiple times or comma-separated
-    -v, --verbose        Show detailed output during installation
-    -h, --help           Show this help message
+aws configure
+# Enter Access Key ID, Secret Access Key, region, output format
 ```
 
-### Examples
-
+### Google Cloud CLI
 ```bash
-# Preview what would be installed
-./install-all.sh --dry-run
-
-# Skip Docker installation
-./install-all.sh --skip docker
-
-# Skip multiple components (comma-separated)
-./install-all.sh -s docker,ruby,devops
-
-# Skip multiple components (multiple flags)
-./install-all.sh -s docker -s devops
-
-# Verbose dry-run
-./install-all.sh -n -v --skip docker
+gcloud init
+# Follow interactive setup to authenticate and select project
 ```
 
-### Available Components for --skip
-
-| Component | Description |
-|-----------|-------------|
-| `zsh` | Zsh shell |
-| `mise` | mise version manager |
-| `nodejs` | Node.js runtime |
-| `ruby` | Ruby runtime |
-| `docker` | Docker CE with compose |
-| `stow` | GNU stow |
-| `dotfiles` | Dotfiles configuration |
-| `devops` | DevOps tools (kubectl, helm, terraform, etc.) |
-| `shell` | Set Zsh as default shell |
-
-After installation completes, **log out and log back in** for all changes to take effect.
-
-### Individual Installations
-
-You can also install components individually:
-
+### Azure CLI
 ```bash
-# Shell and utilities
-./install-zsh.sh         # Zsh shell
-./install-stow.sh        # GNU stow
-./set-shell.sh           # Set Zsh as default
-
-# Version manager (required for Node.js and Ruby)
-./install-mise.sh        # Installs mise
-
-# Development tools
-./install-nodejs.sh      # Node.js (via mise)
-./install-ruby.sh        # Ruby (via mise)
-
-# Container runtime
-./install-docker.sh      # Docker CE + compose
-
-# DevOps tools
-./install-devops-tools.sh  # kubectl, helm, terraform, k9s, cloud CLIs
-
-# Dotfiles and configs
-./install-dotfiles.sh    # Clone and apply dotfiles
+az login
+# Opens browser for authentication
+az account list  # List subscriptions
+az account set --subscription <id>  # Select subscription
 ```
 
-All installation scripts are **idempotent** and can be run multiple times safely.
-
-## Configuration Details
-
-### Version Management with mise
-
-mise is a fast, polyglot version manager (written in Rust) that replaces asdf. It manages different versions of programming languages and tools per-project or globally.
-
-#### Common Commands
-
-**Install versions:**
+### GitHub CLI
 ```bash
-mise install                 # Install all tools from config
-mise install node@25         # Install specific version
-mise install node@latest     # Install latest version
+gh auth login
+# Follow interactive setup
+gh repo list  # Verify access
 ```
 
-**Set versions:**
+### Kubernetes
 ```bash
-mise use -g node@25          # Set globally (~/.config/mise/config.toml)
-mise use node@18             # Set for current project (creates mise.toml)
+kubectl config view              # View current config
+kubectl config get-contexts      # List contexts
+kubectx                         # Switch contexts
+kubens                          # Switch namespaces
+k9s                             # Launch TUI
 ```
 
-**View versions:**
+### ArgoCD
 ```bash
-mise current                 # Show active versions in current directory
-mise ls                      # List all installed versions
-mise ls node                 # List installed node versions
+argocd login <server>           # Login to ArgoCD
+argocd app list                 # List applications
 ```
 
-**Update tools:**
+### Flux
 ```bash
-mise upgrade                 # Upgrade all tools to latest versions
-mise upgrade node            # Upgrade only node
+flux check --pre                # Check prerequisites
+flux bootstrap github           # Bootstrap on cluster
 ```
 
-### Docker Configuration
+**Important:** Log out and log back in for shell and Docker group changes to take effect.
 
-Docker is installed with:
-- **Docker CE** - Container runtime
-- **docker-compose plugin** - Multi-container orchestration (use `docker compose` not `docker-compose`)
-- **docker-buildx** - Multi-platform builds
+## Version Management with mise
 
-After installation, you need to **log out and log back in** for docker group membership to take effect.
+mise manages language versions per-project or globally.
+
+### Common Commands
 
 ```bash
-# Verify installation
+# Install versions
+mise install                    # Install all from config
+mise install node@latest        # Install latest Node.js
+mise install ruby@3.4           # Install Ruby 3.4.x
+
+# Set versions
+mise use -g node@25             # Set globally
+mise use node@18                # Set for current project
+
+# View versions
+mise current                    # Active versions
+mise ls                         # All installed
+mise ls node                    # Node versions only
+
+# Upgrade
+mise upgrade                    # Upgrade all
+mise upgrade node               # Upgrade Node.js only
+```
+
+## Docker
+
+After installation:
+```bash
+# Verify
 docker run hello-world
 
-# Use docker compose
+# Use compose
 docker compose up -d
 docker compose down
 ```
 
-### DevOps Tools Setup
+## Individual Scripts
 
-After installing the DevOps tools, you'll need to configure the cloud CLIs:
+Install components separately:
 
-**AWS CLI:**
 ```bash
-aws configure
-# Enter your AWS Access Key ID, Secret Access Key, region, and output format
-```
-
-**Google Cloud CLI:**
-```bash
-gcloud init
-# Follow the interactive setup to authenticate and select project
-```
-
-**Azure CLI:**
-```bash
-az login
-# Opens browser for authentication
-az account list  # List available subscriptions
-az account set --subscription <subscription-id>
-```
-
-**GitHub CLI:**
-```bash
-gh auth login
-# Follow the interactive setup to authenticate with GitHub
-gh repo list     # List your repositories
-gh pr list       # List pull requests
-```
-
-**Kubernetes:**
-```bash
-kubectl config view              # View current config
-kubectl config get-contexts      # List available contexts
-kubectx                          # Switch contexts easily
-kubens                           # Switch namespaces easily
-k9s                              # Launch Kubernetes TUI
-stern <pod-name>                 # Tail logs from multiple pods
-```
-
-**ArgoCD:**
-```bash
-argocd login <server>            # Login to ArgoCD server
-argocd app list                  # List applications
-argocd app sync <app-name>       # Sync application
-```
-
-**Flux:**
-```bash
-flux check --pre                 # Check prerequisites
-flux bootstrap github            # Bootstrap Flux on cluster
-```
-
-**Terraform:**
-```bash
-terraform init    # Initialize working directory
-terraform plan    # Preview changes
-terraform apply   # Apply changes
+./install-zsh.sh              # Zsh shell
+./install-shell-tools.sh      # starship, zoxide, fzf, fonts
+./install-mise.sh             # mise version manager
+./install-nodejs.sh           # Node.js via mise
+./install-ruby.sh             # Ruby via mise
+./install-docker.sh           # Docker CE + compose
+./install-stow.sh             # GNU stow
+./install-dotfiles.sh         # Clone and apply dotfiles
+./install-devops-tools.sh     # All DevOps tooling
+./set-shell.sh                # Set Zsh as default
 ```
 
 ## Troubleshooting
 
 ### mise: "missing: ruby@3.4" or "missing: node@..."
 
-**Solution:** Install the missing tool version:
 ```bash
 mise install ruby@3.4
 # or
 mise install  # Install all from config
 ```
 
-**Check your configuration:**
-```bash
-mise doctor  # Verify mise setup
-mise current # Show what versions are expected
-mise ls      # Show what versions are installed
-```
-
 ### Docker: "permission denied"
 
-**Issue:** Cannot run docker commands without sudo after installation.
-
-**Solution:** Log out and log back in for docker group membership to take effect. Then verify:
+Log out and log back in for docker group membership:
 ```bash
 groups  # Should include 'docker'
-docker run hello-world
 ```
 
-### Dotfiles: SSH key error when cloning
+### Dotfiles: Clone fails
 
-**Issue:** `git clone git@github.com:...` fails with permission denied.
-
-**Solution:** Set up SSH keys for GitHub:
+For HTTPS authentication with private repos, use a credential helper or personal access token:
 ```bash
-ssh-keygen -t ed25519 -C "your_email@example.com"
-cat ~/.ssh/id_ed25519.pub  # Copy this to GitHub Settings > SSH Keys
-ssh -T git@github.com      # Test connection
+git config --global credential.helper store
 ```
 
-### kubectl: "The connection to the server was refused"
+### kubectl: "connection refused"
 
-**Issue:** kubectl cannot connect to cluster.
-
-**Solution:** Ensure you have a valid kubeconfig:
+Ensure valid kubeconfig:
 ```bash
 kubectl config view
 kubectl config get-contexts
 ```
 
+## Testing
+
+Test suite using bats-core:
+
+```bash
+# Install bats-core
+git clone https://github.com/bats-core/bats-core.git /tmp/bats-core
+cd /tmp/bats-core && ./install.sh ~/.local
+
+# Run tests
+cd ubuntu-dev-bootstrap
+bats tests/
+```
+
 ## File Structure
 
 ```
-popos-supplements/
-├── install-all.sh              # Master installation script (idempotent)
-├── install-zsh.sh              # Install Zsh
-├── install-mise.sh             # Install mise version manager
-├── install-nodejs.sh           # Install Node.js via mise
-├── install-ruby.sh             # Install Ruby via mise
-├── install-docker.sh           # Install Docker CE + compose
-├── install-stow.sh             # Install GNU stow
-├── install-dotfiles.sh         # Clone and apply dotfiles
-├── install-devops-tools.sh     # Install DevOps tooling
-├── set-shell.sh                # Set Zsh as default shell
-└── README.md                   # This file
+ubuntu-dev-bootstrap/
+├── install.sh              # Bootstrap entry point (curl one-liner)
+├── install-all.sh          # Master orchestrator with profiles
+├── install-zsh.sh          # Zsh installation
+├── install-shell-tools.sh  # starship, zoxide, fzf, fonts
+├── install-mise.sh         # mise version manager
+├── install-nodejs.sh       # Node.js via mise
+├── install-ruby.sh         # Ruby via mise
+├── install-docker.sh       # Docker CE + compose
+├── install-stow.sh         # GNU stow
+├── install-dotfiles.sh     # Dotfiles clone and apply
+├── install-devops-tools.sh # DevOps tooling
+├── install-fastfetch.sh    # Fastfetch
+├── install-uv.sh           # Python uv
+├── install-rust.sh         # Rust via rustup
+├── install-golang.sh       # Go
+├── configure-zed.sh        # Zed GPU config
+├── set-shell.sh            # Set default shell
+├── tests/                  # Test suite
+│   ├── test_bootstrap.bats
+│   ├── test_profiles.bats
+│   ├── test_dotfiles.bats
+│   └── test_idempotence.bats
+├── README.md
+├── CHANGELOG.md
+└── LICENSE
 ```
 
 ## Version Information
 
-### Development Tools
-- **Node.js**: 25 (prefix-pinned, auto-updates to 25.x.x)
-- **Ruby**: 3.4 (prefix-pinned, auto-updates to 3.4.x)
-- **mise**: Latest from https://mise.run
+All tools install latest stable versions:
 
-### Container Runtime
-- **Docker CE**: Latest stable from official Docker repository
-
-### DevOps Tools
-All DevOps tools are installed from official repositories or binary releases:
-- **kubectl**: Latest stable (v1.31.x)
-- **helm**: Latest stable (v3.x)
-- **k9s**: Latest stable
-- **terraform**: Latest stable (v1.14.x)
-- **ansible**: Latest from apt
-- **aws-cli**: v2 (latest)
-- **gcloud**: Latest stable
-- **azure-cli**: Latest stable
-- **github-cli**: Latest stable
+| Tool | Source | Version |
+|------|--------|---------|
+| kubectl | k8s v1/stable channel | Latest stable |
+| Node.js | mise | 25.x.x (prefix-pinned) |
+| Ruby | mise | 3.4.x (prefix-pinned) |
+| Docker CE | Official repo | Latest stable |
+| helm | helm.sh | Latest |
+| terraform | HashiCorp repo | Latest |
+| k9s | GitHub releases | Latest |
+| aws-cli | awscli.amazonaws.com | v2 latest |
+| gcloud | cloud.google.com | Latest |
+| azure-cli | packages.microsoft.com | Latest |
 
 ## Installation Sources
 
-All installation methods verified December 2025:
-
-| Tool | Source |
-|------|--------|
+| Tool | Documentation |
+|------|---------------|
 | Docker | [docs.docker.com](https://docs.docker.com/engine/install/ubuntu/) |
 | kubectl | [kubernetes.io](https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/) |
-| Terraform | [developer.hashicorp.com](https://developer.hashicorp.com/terraform/cli/install/apt) |
-| AWS CLI | [docs.aws.amazon.com](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) |
+| Terraform | [hashicorp.com](https://developer.hashicorp.com/terraform/cli/install/apt) |
+| AWS CLI | [aws.amazon.com](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) |
 | gcloud | [cloud.google.com](https://cloud.google.com/sdk/docs/install) |
-| Azure CLI | [learn.microsoft.com](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux) |
-| GitHub CLI | [github.com/cli/cli](https://github.com/cli/cli/blob/trunk/docs/install_linux.md) |
+| Azure CLI | [microsoft.com](https://learn.microsoft.com/cli/azure/install-azure-cli-linux) |
+| GitHub CLI | [github.com](https://github.com/cli/cli/blob/trunk/docs/install_linux.md) |
 | Helm | [helm.sh](https://helm.sh/docs/intro/install/) |
-| k9s | [k9scli.io](https://k9scli.io/topics/install/) |
-| ArgoCD | [argo-cd.readthedocs.io](https://argo-cd.readthedocs.io/en/stable/cli_installation/) |
-| Flux | [fluxcd.io](https://fluxcd.io/flux/installation/) |
 | mise | [mise.jdx.dev](https://mise.jdx.dev/installing-mise.html) |
 
 ## License
 
-This is a personal configuration repository. Use at your own discretion.
+MIT License - see [LICENSE](LICENSE) file.
 
 ## Contributing
 
-This is a personal setup repository, but feel free to fork and adapt for your own use!
+Personal setup repository - feel free to fork and adapt for your own use!

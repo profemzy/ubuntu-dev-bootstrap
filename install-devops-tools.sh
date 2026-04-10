@@ -72,15 +72,15 @@ else
     sudo apt update
     sudo apt install -y apt-transport-https ca-certificates curl gnupg
 
-    # Add Kubernetes GPG key (new method for 2025)
+    # Add Kubernetes GPG key (v1/stable channel for latest stable version)
     sudo mkdir -p /etc/apt/keyrings
     if [ -f /etc/apt/keyrings/kubernetes-apt-keyring.gpg ]; then
         sudo rm /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     fi
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-    # Add repository
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    # Add repository (v1/stable channel - always latest stable)
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
     sudo apt update
     if sudo apt install -y kubectl; then

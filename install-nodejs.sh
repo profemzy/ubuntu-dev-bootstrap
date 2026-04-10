@@ -9,7 +9,8 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-# Version configuration
+# Version configuration (prefix-pinned for latest within major version)
+# Node.js 25 will auto-update to latest 25.x.x release
 NODE_VERSION="25"
 
 log_info() { echo -e "[INFO] $1"; }

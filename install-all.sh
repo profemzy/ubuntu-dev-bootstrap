@@ -9,6 +9,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Script directory
@@ -17,9 +18,20 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Flags
 DRY_RUN=false
 VERBOSE=false
+NON_INTERACTIVE=false
+PROFILE="full"
+DOTFILES_URL="https://github.com/profemzy/dotfiles.git"
 
 # Components to skip
 declare -a SKIP_COMPONENTS=()
+
+# Profile definitions (components included in each profile)
+# Each profile is a set of component IDs from AVAILABLE_COMPONENTS
+declare -A PROFILE_COMPONENTS
+PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise"
+PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles"
+PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops"
+PROFILE_COMPONENTS["full"]="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles devops zed shell"
 
 # Track what would be/was installed
 declare -a WILL_INSTALL=()
@@ -60,13 +72,22 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS]
 
-Pop!_OS Supplement Installation Script
+Ubuntu Developer Bootstrap Installation Script
 
 OPTIONS:
-    -n, --dry-run        Show what would be installed without making changes
-    -s, --skip COMP      Skip component(s). Can be used multiple times or comma-separated
-    -v, --verbose        Show detailed output during installation
-    -h, --help           Show this help message
+    -p, --profile PROFILE     Installation profile (minimal, frontend, devops, full)
+    -d, --dotfiles-url URL    Custom dotfiles repository URL
+    -n, --non-interactive     Skip all prompts, use defaults
+    -s, --skip COMP           Skip component(s). Can be used multiple times or comma-separated
+    --dry-run                 Show what would be installed without making changes
+    -v, --verbose             Show detailed output during installation
+    -h, --help                Show this help message
+
+PROFILES:
+    minimal     Shell tools, mise, stow (base layer)
+    frontend    minimal + Node.js, dotfiles
+    devops      minimal + Docker, kubectl, helm, terraform, cloud CLIs
+    full        frontend + devops + Ruby, Rust, Go, uv, fastfetch (default)
 
 AVAILABLE COMPONENTS (for --skip):
     zsh         Zsh shell
@@ -87,10 +108,13 @@ AVAILABLE COMPONENTS (for --skip):
 
 EXAMPLES:
     $(basename "$0")                          # Run full installation
+    $(basename "$0") --profile devops         # Install DevOps profile
+    $(basename "$0") --profile minimal        # Install minimal profile
     $(basename "$0") --dry-run                # Preview what would be installed
     $(basename "$0") --skip docker            # Skip Docker installation
     $(basename "$0") -s docker,ruby           # Skip multiple components
     $(basename "$0") -s docker -s devops      # Skip using multiple flags
+    $(basename "$0") --dotfiles-url https://github.com/user/dotfiles.git  # Custom dotfiles
 
 EOF
     exit 0
@@ -106,6 +130,17 @@ validate_component() {
     fi
 }
 
+# Validate profile name
+validate_profile() {
+    local profile=$1
+    local valid_profiles="minimal frontend devops full"
+    if [[ ! " $valid_profiles " =~ " $profile " ]]; then
+        log_error "Invalid profile: $profile"
+        echo "Valid profiles: $valid_profiles"
+        exit 1
+    fi
+}
+
 # Check if component should be skipped
 should_skip() {
     local comp=$1
@@ -117,11 +152,42 @@ should_skip() {
     return 1
 }
 
+# Check if component is in current profile
+in_profile() {
+    local comp=$1
+    local profile_components="${PROFILE_COMPONENTS[$PROFILE]}"
+    if [[ " $profile_components " =~ " $comp " ]]; then
+        return 0
+    fi
+    return 1
+}
+
 # Parse command line arguments
 parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -n|--dry-run)
+            -p|--profile)
+                if [[ -z "${2:-}" ]]; then
+                    log_error "--profile requires a profile name"
+                    exit 1
+                fi
+                PROFILE="$2"
+                validate_profile "$PROFILE"
+                shift 2
+                ;;
+            -d|--dotfiles-url)
+                if [[ -z "${2:-}" ]]; then
+                    log_error "--dotfiles-url requires a URL"
+                    exit 1
+                fi
+                DOTFILES_URL="$2"
+                shift 2
+                ;;
+            -n|--non-interactive)
+                NON_INTERACTIVE=true
+                shift
+                ;;
+            --dry-run)
                 DRY_RUN=true
                 shift
                 ;;
@@ -197,6 +263,14 @@ run_if_needed() {
 
     log_step "$step_num" "$step_name..."
 
+    # Check if component is in the current profile
+    if ! in_profile "$component_id"; then
+        log_warning "Not included in '$PROFILE' profile"
+        WILL_SKIP+=("$step_name (profile)")
+        echo ""
+        return 0
+    fi
+
     # Check if component should be skipped
     if should_skip "$component_id"; then
         log_warning "Skipped by user (--skip $component_id)"
@@ -222,6 +296,11 @@ run_if_needed() {
                 log_info "Running: ./$script"
             fi
 
+            # Pass dotfiles URL to install-dotfiles.sh
+            if [[ "$script" == "install-dotfiles.sh" ]]; then
+                script="$script --dotfiles-url $DOTFILES_URL"
+            fi
+
             # Split script into command and arguments
             read -ra script_args <<< "$script"
             if ! "${SCRIPT_DIR}/${script_args[0]}" "${script_args[@]:1}"; then
@@ -243,23 +322,26 @@ main() {
 
     echo "==================================="
     if [ "$DRY_RUN" = true ]; then
-        echo -e "${YELLOW}Pop!_OS Supplement - DRY RUN${NC}"
+        echo -e "${YELLOW}Ubuntu Dev Bootstrap - DRY RUN${NC}"
         echo "No changes will be made"
     else
-        echo "Pop!_OS Supplement Installation"
+        echo "Ubuntu Dev Bootstrap Installation"
     fi
     echo "==================================="
+    echo ""
+    echo -e "${CYAN}Profile: $PROFILE${NC}"
+    echo -e "${CYAN}Dotfiles: $DOTFILES_URL${NC}"
     echo ""
 
     # Verify we're in the correct directory
     if [ ! -f "${SCRIPT_DIR}/install-zsh.sh" ]; then
-        log_error "Cannot find installation scripts. Please run from the popos-supplements directory."
+        log_error "Cannot find installation scripts. Please run from the ubuntu-dev-bootstrap directory."
         exit 1
     fi
 
     # Check prerequisites
     if ! command_exists apt; then
-        log_error "apt is not available. This script is designed for Pop!_OS/Ubuntu."
+        log_error "apt is not available. This script is designed for Ubuntu/Debian systems."
         exit 1
     fi
 
@@ -304,6 +386,8 @@ main() {
         echo -e "${YELLOW}DRY RUN SUMMARY${NC}"
         echo "==================================="
         echo ""
+        echo -e "${CYAN}Profile: $PROFILE${NC}"
+        echo ""
         if [ ${#WILL_INSTALL[@]} -gt 0 ]; then
             echo -e "${BLUE}Would install:${NC}"
             printf '  - %s\n' "${WILL_INSTALL[@]}"
@@ -319,13 +403,15 @@ main() {
         echo -e "${GREEN}Installation complete!${NC}"
         echo "==================================="
         echo ""
+        echo -e "${CYAN}Profile installed: $PROFILE${NC}"
+        echo ""
         if [ ${#INSTALLED[@]} -gt 0 ]; then
             echo -e "${GREEN}Newly installed:${NC}"
             printf '  - %s\n' "${INSTALLED[@]}"
             echo ""
         fi
         if [ ${#WILL_SKIP[@]} -gt 0 ]; then
-            echo -e "${BLUE}Already installed:${NC}"
+            echo -e "${BLUE}Already installed / skipped:${NC}"
             printf '  - %s\n' "${WILL_SKIP[@]}"
             echo ""
         fi
