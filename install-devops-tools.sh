@@ -72,21 +72,47 @@ else
     sudo apt update
     sudo apt install -y apt-transport-https ca-certificates curl gnupg
 
-    # Add Kubernetes GPG key (v1/stable channel for latest stable version)
+    # Add Kubernetes GPG key (use latest stable minor version)
     sudo mkdir -p /etc/apt/keyrings
     if [ -f /etc/apt/keyrings/kubernetes-apt-keyring.gpg ]; then
         sudo rm /etc/apt/keyrings/kubernetes-apt-keyring.gpg
     fi
-    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-    # Add repository (v1/stable channel - always latest stable)
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    K8S_MINOR=$(curl -s https://api.github.com/repos/kubernetes/kubernetes/releases/latest | grep tag_name | cut -d'"' -f4 | cut -d. -f1,2)
+    if [ -z "$K8S_MINOR" ]; then
+        K8S_MINOR="v1.36"
+        log_info "Could not detect latest Kubernetes version, falling back to ${K8S_MINOR}"
+    fi
 
-    sudo apt update
-    if sudo apt install -y kubectl; then
-        log_success "kubectl installed successfully"
+    K8S_KEY_URL="https://pkgs.k8s.io/core:/stable:/${K8S_MINOR}/deb/Release.key"
+    log_info "Downloading Kubernetes GPG key from ${K8S_KEY_URL}..."
+    KUBECTL_KEY_OK=false
+    if curl -fsSL "${K8S_KEY_URL}" -o /tmp/kubernetes-Release.key; then
+        if [ -s /tmp/kubernetes-Release.key ]; then
+            KUBECTL_KEY_OK=true
+        else
+            log_error "Kubernetes GPG key file is empty"
+        fi
     else
-        log_error "Failed to install kubectl"
+        log_error "Failed to download Kubernetes GPG key from ${K8S_KEY_URL}"
+    fi
+
+    if [ "$KUBECTL_KEY_OK" = true ]; then
+        sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-Release.key
+        rm -f /tmp/kubernetes-Release.key
+
+        # Add repository
+        echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/${K8S_MINOR}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+        sudo apt update
+        if sudo apt install -y kubectl; then
+            log_success "kubectl installed successfully"
+        else
+            log_error "Failed to install kubectl"
+            FAILED_PACKAGES+=("kubectl")
+        fi
+    else
+        rm -f /tmp/kubernetes-Release.key
         FAILED_PACKAGES+=("kubectl")
     fi
 fi
@@ -241,8 +267,15 @@ else
     fi
     wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
+    # Determine the appropriate Ubuntu codename for the HashiCorp repo
+    HASHICORP_CODENAME=$(lsb_release -cs)
+    if ! curl -fsSL "https://apt.releases.hashicorp.com/dists/${HASHICORP_CODENAME}/Release" -o /dev/null 2>/dev/null; then
+        log_info "HashiCorp repo does not support '${HASHICORP_CODENAME}', falling back to 'noble'"
+        HASHICORP_CODENAME="noble"
+    fi
+
     # Add repository
-    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com ${HASHICORP_CODENAME} main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
     sudo apt update
     if sudo apt install -y terraform; then
