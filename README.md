@@ -40,7 +40,7 @@ Built-in profiles for different developer needs:
 | Profile | Description | Components |
 |---------|-------------|------------|
 | `minimal` | Base layer | zsh, shelltools (starship, zoxide, fzf, fonts), mise, stow |
-| `frontend` | Web development | minimal + Node.js, Lazygit, LazyVim, dotfiles |
+| `frontend` | Web development | minimal + Node.js, tmux, Lazygit, LazyVim, dotfiles |
 | `devops` | Infrastructure | minimal + Docker, Lazygit, Lazydocker, kubectl, helm, terraform, cloud CLIs, k9s, argocd, flux |
 | `full` | Complete toolkit | frontend + devops + Ruby, Rust, Go, uv, fastfetch, Zed config |
 
@@ -120,6 +120,7 @@ AVAILABLE COMPONENTS (for --skip):
     docker      Docker CE with compose plugin
     stow        GNU stow
     dotfiles    Dotfiles configuration
+    tmux        Terminal multiplexer
     lazyvim     LazyVim (preconfigured Neovim distribution)
     devops      DevOps tools (kubectl, helm, terraform, cloud CLIs, etc.)
     lazygit     Lazygit (terminal UI for Git)
@@ -132,6 +133,7 @@ AVAILABLE COMPONENTS (for --skip):
 
 ### Shell & Tools
 - **Zsh** - Z shell with modern features
+- **tmux** - Terminal multiplexer
 - **starship** - Cross-shell prompt
 - **zoxide** - Smart directory jumper
 - **fzf** - Fuzzy finder
@@ -300,6 +302,7 @@ Install components separately:
 ./install-docker.sh           # Docker CE + compose
 ./install-stow.sh             # GNU stow
 ./install-dotfiles.sh         # Clone and apply dotfiles
+./install-tmux.sh             # Tmux terminal multiplexer
 ./install-devops-tools.sh     # All DevOps tooling
 ./install-lazygit.sh          # Lazygit terminal UI for Git
 ./install-lazydocker.sh       # Lazydocker terminal UI for Docker
@@ -367,6 +370,7 @@ ubuntu-dev-bootstrap/
 ├── install-docker.sh       # Docker CE + compose
 ├── install-stow.sh         # GNU stow
 ├── install-dotfiles.sh     # Dotfiles clone and apply
+├── install-tmux.sh         # Tmux terminal multiplexer
 ├── install-devops-tools.sh # DevOps tooling
 ├── install-fastfetch.sh    # Fastfetch
 ├── install-uv.sh           # Python uv
@@ -393,6 +397,7 @@ All tools install latest stable versions:
 
 | Tool | Source | Version |
 |------|--------|---------|
+| tmux | apt | Latest stable |
 | kubectl | k8s v1/stable channel | Latest stable |
 | Node.js | mise | 25.x.x (prefix-pinned) |
 | Ruby | mise | 3.4.x (prefix-pinned) |

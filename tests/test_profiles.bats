@@ -134,3 +134,37 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Skipped by user (--skip lazygit)" ]]
 }
+
+@test "profiles: frontend profile includes tmux" {
+    run ./install-all.sh --profile frontend --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "tmux..." ]]
+    [[ "$output" != *"tmux..."$'\n'"[WARN] Not included in 'frontend' profile"* ]]
+}
+
+@test "profiles: full profile includes tmux" {
+    run ./install-all.sh --profile full --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "tmux..." ]]
+    [[ "$output" != *"tmux..."$'\n'"[WARN] Not included in 'full' profile"* ]]
+}
+
+@test "profiles: minimal profile excludes tmux" {
+    run ./install-all.sh --profile minimal --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "tmux..." ]]
+    [[ "$output" =~ "Not included in 'minimal' profile" ]]
+}
+
+@test "profiles: devops profile excludes tmux" {
+    run ./install-all.sh --profile devops --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "tmux..." ]]
+    [[ "$output" =~ "Not included in 'devops' profile" ]]
+}
+
+@test "profiles: --skip tmux with frontend profile" {
+    run ./install-all.sh --profile frontend --skip tmux --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Skipped by user (--skip tmux)" ]]
+}

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
+## [v2.2.0] - 2026-04-27
+
+### Added
+- **tmux** - Terminal multiplexer (installed via apt), required by LazyVim
+- Added to `frontend` and `full` profiles
+
 ## [v2.1.0] - 2026-04-27
 
 ### Added

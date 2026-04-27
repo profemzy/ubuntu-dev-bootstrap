@@ -29,9 +29,9 @@ declare -a SKIP_COMPONENTS=()
 # Each profile is a set of component IDs from AVAILABLE_COMPONENTS
 declare -A PROFILE_COMPONENTS
 PROFILE_COMPONENTS["minimal"]="zsh shelltools stow mise dotfiles shell"
-PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles lazygit lazyvim shell"
+PROFILE_COMPONENTS["frontend"]="zsh shelltools stow mise nodejs dotfiles tmux lazygit lazyvim shell"
 PROFILE_COMPONENTS["devops"]="zsh shelltools stow mise docker devops dotfiles lazygit lazydocker shell"
-PROFILE_COMPONENTS["full"]="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles lazyvim devops lazygit lazydocker zed shell"
+PROFILE_COMPONENTS["full"]="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles tmux lazyvim devops lazygit lazydocker zed shell"
 
 # Track what would be/was installed
 declare -a WILL_INSTALL=()
@@ -65,7 +65,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Available components (for --skip validation)
-AVAILABLE_COMPONENTS="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles lazyvim devops lazygit lazydocker zed shell"
+AVAILABLE_COMPONENTS="zsh shelltools fastfetch uv rust golang mise nodejs ruby docker stow dotfiles tmux lazyvim devops lazygit lazydocker zed shell"
 
 # Usage information
 usage() {
@@ -85,7 +85,7 @@ OPTIONS:
 
 PROFILES:
     minimal     Shell tools, mise, stow (base layer)
-    frontend    minimal + Node.js, Lazygit, LazyVim, dotfiles
+    frontend    minimal + Node.js, Lazygit, LazyVim, dotfiles, tmux
     devops      minimal + Docker, Lazygit, Lazydocker, kubectl, helm, terraform, cloud CLIs
     full        frontend + devops + Ruby, Rust, Go, uv, fastfetch (default)
 
@@ -102,6 +102,7 @@ AVAILABLE COMPONENTS (for --skip):
     docker      Docker CE with compose plugin
     stow        GNU stow
     dotfiles    Dotfiles configuration
+    tmux        Terminal multiplexer
     lazyvim     LazyVim (preconfigured Neovim distribution)
     devops      DevOps tools (kubectl, helm, terraform, etc.)
     lazygit     Lazygit (terminal UI for Git)
@@ -376,19 +377,21 @@ main() {
 
     run_if_needed "install-stow.sh" "command_exists stow" "11/18" "stow" "stow"
 
-    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ] && [ -L ~/.zshrc ] && [ -L ~/.config/nvim ] && [ -L ~/.config/starship.toml ] && [ -f ~/.zprofile ]" "12/18" "Dotfiles" "dotfiles"
+    run_if_needed "install-dotfiles.sh" "[ -d ~/dotfiles ] && [ -L ~/.zshrc ] && [ -L ~/.config/nvim ] && [ -L ~/.config/starship.toml ] && [ -f ~/.zprofile ]" "12/19" "Dotfiles" "dotfiles"
 
-    run_if_needed "install-lazyvim.sh" "command_exists nvim && [ -d ~/.config/nvim ] && [ -f ~/.config/nvim/init.lua ] && grep -q LazyVim ~/.config/nvim/init.lua 2>/dev/null" "13/18" "LazyVim" "lazyvim"
+    run_if_needed "install-tmux.sh" "command_exists tmux" "13/19" "tmux" "tmux"
 
-    run_if_needed "install-devops-tools.sh" "command_exists kubectl && command_exists kubectx && command_exists kubens && command_exists helm && command_exists k9s && command_exists stern && command_exists argocd && command_exists flux && command_exists terraform && command_exists ansible && command_exists aws && command_exists gcloud && command_exists az && command_exists gh && command_exists yq && command_exists http" "14/18" "DevOps tools" "devops"
+    run_if_needed "install-lazyvim.sh" "command_exists nvim && [ -d ~/.config/nvim ] && [ -f ~/.config/nvim/init.lua ] && grep -q LazyVim ~/.config/nvim/init.lua 2>/dev/null" "14/19" "LazyVim" "lazyvim"
 
-    run_if_needed "install-lazygit.sh" "command_exists lazygit" "15/18" "Lazygit" "lazygit"
+    run_if_needed "install-devops-tools.sh" "command_exists kubectl && command_exists kubectx && command_exists kubens && command_exists helm && command_exists k9s && command_exists stern && command_exists argocd && command_exists flux && command_exists terraform && command_exists ansible && command_exists aws && command_exists gcloud && command_exists az && command_exists gh && command_exists yq && command_exists http" "15/19" "DevOps tools" "devops"
 
-    run_if_needed "install-lazydocker.sh" "command_exists lazydocker" "16/18" "Lazydocker" "lazydocker"
+    run_if_needed "install-lazygit.sh" "command_exists lazygit" "16/19" "Lazygit" "lazygit"
 
-    run_if_needed "configure-zed.sh" "[ -f ~/.config/environment.d/zed.conf ] && grep -qx 'ZED_ALLOW_EMULATED_GPU=1' ~/.config/environment.d/zed.conf" "17/18" "Configure Zed emulated GPU override" "zed"
+    run_if_needed "install-lazydocker.sh" "command_exists lazydocker" "17/19" "Lazydocker" "lazydocker"
 
-    run_if_needed "set-shell.sh" "[ \"\$(getent passwd \"$USER\" | cut -d: -f7)\" = \"\$(command -v zsh 2>/dev/null || echo /nonexistent)\" ]" "18/18" "Set default shell" "shell"
+    run_if_needed "configure-zed.sh" "[ -f ~/.config/environment.d/zed.conf ] && grep -qx 'ZED_ALLOW_EMULATED_GPU=1' ~/.config/environment.d/zed.conf" "18/19" "Configure Zed emulated GPU override" "zed"
+
+    run_if_needed "set-shell.sh" "[ \"\$(getent passwd \"$USER\" | cut -d: -f7)\" = \"\$(command -v zsh 2>/dev/null || echo /nonexistent)\" ]" "19/19" "Set default shell" "shell"
     # Summary
     echo "==================================="
     if [ "$DRY_RUN" = true ]; then
