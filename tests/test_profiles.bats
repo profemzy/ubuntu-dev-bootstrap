@@ -91,3 +91,46 @@ load 'test_helper'
     [ "$status" -eq 0 ]
     [[ "$output" =~ "Profile: full" ]]
 }
+
+@test "profiles: frontend profile includes lazygit and lazyvim" {
+    run ./install-all.sh --profile frontend --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Lazygit..." ]]
+    [[ "$output" != *"Lazygit..."$'\n'"[WARN] Not included in 'frontend' profile"* ]]
+    [[ "$output" =~ "LazyVim..." ]]
+    [[ "$output" != *"LazyVim..."$'\n'"[WARN] Not included in 'frontend' profile"* ]]
+}
+
+@test "profiles: devops profile includes lazygit and lazydocker" {
+    run ./install-all.sh --profile devops --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Lazygit..." ]]
+    [[ "$output" != *"Lazygit..."$'\n'"[WARN] Not included in 'devops' profile"* ]]
+    [[ "$output" =~ "Lazydocker..." ]]
+    [[ "$output" != *"Lazydocker..."$'\n'"[WARN] Not included in 'devops' profile"* ]]
+}
+
+@test "profiles: full profile includes lazygit, lazydocker, and lazyvim" {
+    run ./install-all.sh --profile full --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Lazygit..." ]]
+    [[ "$output" =~ "Lazydocker..." ]]
+    [[ "$output" =~ "LazyVim..." ]]
+}
+
+@test "profiles: minimal profile excludes lazygit, lazydocker, and lazyvim" {
+    run ./install-all.sh --profile minimal --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Lazygit..." ]]
+    [[ "$output" =~ "Not included in 'minimal' profile" ]]
+    [[ "$output" =~ "Lazydocker..." ]]
+    [[ "$output" =~ "Not included in 'minimal' profile" ]]
+    [[ "$output" =~ "LazyVim..." ]]
+    [[ "$output" =~ "Not included in 'minimal' profile" ]]
+}
+
+@test "profiles: --skip lazygit with frontend profile" {
+    run ./install-all.sh --profile frontend --skip lazygit --dry-run
+    [ "$status" -eq 0 ]
+    [[ "$output" =~ "Skipped by user (--skip lazygit)" ]]
+}

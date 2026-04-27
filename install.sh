@@ -79,8 +79,8 @@ OPTIONS:
 
 PROFILES:
     minimal     Shell tools, mise, stow (base layer)
-    frontend    minimal + Node.js, dotfiles
-    devops      minimal + Docker, kubectl, helm, terraform, cloud CLIs
+    frontend    minimal + Node.js, Lazygit, LazyVim, dotfiles
+    devops      minimal + Docker, Lazygit, Lazydocker, kubectl, helm, terraform, cloud CLIs
     full        frontend + devops + Ruby, Rust, Go, uv, fastfetch
 
 EXAMPLES:
@@ -160,8 +160,8 @@ prompt_profile() {
     echo "Select an installation profile:"
     echo ""
     echo "  1) minimal     - Shell tools, mise, stow (base layer)"
-    echo "  2) frontend    - minimal + Node.js, dotfiles"
-    echo "  3) devops      - minimal + Docker, kubectl, helm, terraform, cloud CLIs"
+    echo "  2) frontend    - minimal + Node.js, Lazygit, LazyVim, dotfiles"
+    echo "  3) devops      - minimal + Docker, Lazygit, Lazydocker, kubectl, helm, terraform, cloud CLIs"
     echo "  4) full        - frontend + devops + Ruby, Rust, Go, uv, fastfetch"
     echo ""
     echo -n "Enter choice [1-4] (default: 4): "
@@ -251,10 +251,10 @@ run_installer() {
                 echo "  - zsh, shelltools, stow, mise"
                 ;;
             frontend)
-                echo "  - minimal + nodejs, dotfiles"
+                echo "  - minimal + nodejs, lazygit, lazyvim, dotfiles"
                 ;;
             devops)
-                echo "  - minimal + docker, kubectl, helm, terraform, ansible"
+                echo "  - minimal + docker, lazygit, lazydocker, kubectl, helm, terraform, ansible"
                 echo "  - cloud CLIs: aws, gcloud, az"
                 echo "  - k9s, argocd, flux, stern, yq, httpie"
                 ;;

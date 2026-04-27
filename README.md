@@ -40,8 +40,8 @@ Built-in profiles for different developer needs:
 | Profile | Description | Components |
 |---------|-------------|------------|
 | `minimal` | Base layer | zsh, shelltools (starship, zoxide, fzf, fonts), mise, stow |
-| `frontend` | Web development | minimal + Node.js, dotfiles |
-| `devops` | Infrastructure | minimal + Docker, kubectl, helm, terraform, cloud CLIs, k9s, argocd, flux |
+| `frontend` | Web development | minimal + Node.js, Lazygit, LazyVim, dotfiles |
+| `devops` | Infrastructure | minimal + Docker, Lazygit, Lazydocker, kubectl, helm, terraform, cloud CLIs, k9s, argocd, flux |
 | `full` | Complete toolkit | frontend + devops + Ruby, Rust, Go, uv, fastfetch, Zed config |
 
 **Default profile:** `full`
@@ -120,7 +120,10 @@ AVAILABLE COMPONENTS (for --skip):
     docker      Docker CE with compose plugin
     stow        GNU stow
     dotfiles    Dotfiles configuration
+    lazyvim     LazyVim (preconfigured Neovim distribution)
     devops      DevOps tools (kubectl, helm, terraform, cloud CLIs, etc.)
+    lazygit     Lazygit (terminal UI for Git)
+    lazydocker  Lazydocker (terminal UI for Docker)
     zed         Configure Zed to allow emulated GPUs
     shell       Set Zsh as default shell
 ```
@@ -175,6 +178,11 @@ AVAILABLE COMPONENTS (for --skip):
 **Utilities:**
 - **yq** - YAML/XML/TOML processor
 - **httpie** - User-friendly HTTP client
+
+**Terminal UIs:**
+- **Lazygit** - Terminal UI for git
+- **Lazydocker** - Terminal UI for Docker
+- **LazyVim** - Preconfigured Neovim distribution (installs Neovim as prerequisite)
 
 ### Dotfiles
 Pre-configured dotfiles from [profemzy/dotfiles](https://github.com/profemzy/dotfiles):
@@ -293,6 +301,9 @@ Install components separately:
 ./install-stow.sh             # GNU stow
 ./install-dotfiles.sh         # Clone and apply dotfiles
 ./install-devops-tools.sh     # All DevOps tooling
+./install-lazygit.sh          # Lazygit terminal UI for Git
+./install-lazydocker.sh       # Lazydocker terminal UI for Docker
+./install-lazyvim.sh          # LazyVim (Neovim + config)
 ./set-shell.sh                # Set Zsh as default
 ```
 
@@ -362,6 +373,9 @@ ubuntu-dev-bootstrap/
 ├── install-rust.sh         # Rust via rustup
 ├── install-golang.sh       # Go
 ├── configure-zed.sh        # Zed GPU config
+├── install-lazygit.sh      # Lazygit terminal UI for Git
+├── install-lazydocker.sh   # Lazydocker terminal UI for Docker
+├── install-lazyvim.sh      # LazyVim Neovim distribution
 ├── set-shell.sh            # Set default shell
 ├── tests/                  # Test suite
 │   ├── test_bootstrap.bats
@@ -389,6 +403,9 @@ All tools install latest stable versions:
 | aws-cli | awscli.amazonaws.com | v2 latest |
 | gcloud | cloud.google.com | Latest |
 | azure-cli | packages.microsoft.com | Latest |
+| LazyVim | GitHub releases | Latest Neovim + LazyVim starter |
+| Lazygit | GitHub releases | Latest |
+| Lazydocker | GitHub releases | Latest |
 
 ## Installation Sources
 

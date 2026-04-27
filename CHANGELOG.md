@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented in this file.
 
+## [v2.1.0] - 2026-04-27
+
+### Added
+- **Lazygit** - Terminal UI for Git (installed from GitHub releases)
+- **Lazydocker** - Terminal UI for Docker (installed from GitHub releases)
+- **LazyVim** - Preconfigured Neovim distribution with latest Neovim from GitHub releases
+- Lazy tools distributed across profiles:
+  - `frontend`: Lazygit, LazyVim
+  - `devops`: Lazygit, Lazydocker
+  - `full`: Lazygit, Lazydocker, LazyVim
+- New `--skip` options: `lazygit`, `lazydocker`, `lazyvim`
+- New individual installer scripts: `install-lazygit.sh`, `install-lazydocker.sh`, `install-lazyvim.sh`
+- New test cases for lazy tool profile filtering and skip behavior
+
+### Changed
+- Installation step count increased from 15 to 18 components
+- LazyVim gracefully skips if `~/.config/nvim` is a stow symlink (dotfiles-managed)
+
 ## [v2.0.0] - 2026-04-10
 
 ### Added
