@@ -46,12 +46,30 @@ if command_exists nvim; then
     log_success "Neovim is already installed: $NVIM_CURRENT"
 else
     log_info "Installing Neovim..."
-    NVIM_TAR="/tmp/nvim-linux64.tar.gz"
-    if curl -fsSL -o "$NVIM_TAR" "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"; then
-        sudo rm -rf /opt/nvim-linux64
+    MACHINE_ARCH="$(uname -m)"
+    case "$MACHINE_ARCH" in
+        x86_64|amd64)
+            NVIM_ARCH="x86_64"
+            ;;
+        aarch64|arm64)
+            NVIM_ARCH="arm64"
+            ;;
+        *)
+            log_error "Unsupported architecture for Neovim binary: $MACHINE_ARCH"
+            log_info "Install Neovim manually, then re-run this script."
+            exit 1
+            ;;
+    esac
+
+    NVIM_DIR="nvim-linux-${NVIM_ARCH}"
+    NVIM_TAR="/tmp/${NVIM_DIR}.tar.gz"
+    NVIM_URL="https://github.com/neovim/neovim/releases/latest/download/${NVIM_DIR}.tar.gz"
+
+    if curl -fsSL -o "$NVIM_TAR" "$NVIM_URL"; then
+        sudo rm -rf "/opt/$NVIM_DIR"
         sudo tar -C /opt -xzf "$NVIM_TAR"
         rm -f "$NVIM_TAR"
-        sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
+        sudo ln -sf "/opt/$NVIM_DIR/bin/nvim" /usr/local/bin/nvim
         log_success "Neovim installed successfully"
     else
         rm -f "$NVIM_TAR"
